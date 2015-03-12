@@ -22,6 +22,9 @@ import           System.Process
 type Journal = Map.Map Day Entry
 type Entry = T.Text
 
+thisApp :: String
+thisApp = "tn"
+
 today :: IO Day
 today = utctDay <$> getCurrentTime
 

@@ -40,6 +40,7 @@ executable journal
     LambdaCase
     DeriveDataTypeable
   build-depends:       base ==4.7.*
+                     , containers ==0.5.*
                      , text
                      , time ==1.4.*
   hs-source-dirs:      src

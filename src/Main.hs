@@ -158,7 +158,6 @@ runTn = do
 --  is from "Data.Time").
 --  
 --  Right now, it's just an alias to launch the editor
-
 editEntry :: Day -> IO ()
 editEntry = launchEditor
 

@@ -97,8 +97,6 @@ help = putStrLn "No help for you"
 tnVersion :: String
 tnVersion = showVersion version
 
--- |==== Technically not variables
--- 
 -- |This is the text that will show up in the editor
 dailyTemplate :: Day -> IO String
 dailyTemplate dy = do
@@ -114,6 +112,8 @@ dailyTemplate dy = do
              , "\n"
              ]
 
+-- |==== Technically not variables
+-- 
 -- Okay, these aren't really variables, but they sort of serve the same purpose
 today :: IO Day
 today = utctDay <$> getCurrentTime

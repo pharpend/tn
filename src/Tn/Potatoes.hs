@@ -33,25 +33,13 @@
 module Tn.Potatoes where
 
 import           Control.Applicative
-import qualified Data.ByteString as B
-import           Data.Aeson
-import           Data.Aeson.Encode.Pretty
 import           Data.Char
-import           Data.Data
-import qualified Data.Map.Lazy as Map
 import           Data.Monoid
+import           Data.List
+import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time
-import           Data.Typeable
-import           Data.Version
-import           Paths_tn (version)
-import           Safe
 import           System.Directory
-import           System.Environment
-import           System.Exit
-import           System.IO
-import           System.IO.Error
-import           System.Process
 import           Tn.Static
 
 -- |==== Technically not variables

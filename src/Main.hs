@@ -26,6 +26,9 @@ module Main where
 
 import           Control.Applicative
 import qualified Data.ByteString as B
+import           Data.Aeson
+import           Data.Aeson.Encode.Pretty
+import           Data.Char
 import           Data.Data
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
@@ -33,7 +36,6 @@ import qualified Data.Text as T
 import           Data.Time
 import           Data.Typeable
 import           Data.Version
-import           Data.Yaml
 import           Paths_tn (version)
 import           Safe
 import           System.Directory
@@ -129,6 +131,14 @@ initialize = createDirectoryIfMissing False =<< tnDir
 -- @todayMinus 1@.
 todayMinus :: Integer -> IO Day
 todayMinus i = addDays (-1 * i) <$> today
+
+filterComments :: String -> String
+filterComments = unlines . filter notAComment . lines
+  where 
+    notAComment :: String -> Bool
+    notAComment s = take 2 (noLeadingWhitespace s) /= ";;"
+    noLeadingWhitespace :: String -> String
+    noLeadingWhitespace = takeWhile (not . isSpace)
 
 -- |=== Let's get 'main' out of the way
 -- 

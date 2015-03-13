@@ -28,7 +28,7 @@ import           Control.Applicative
 import qualified Data.ByteString as B
 import           Data.Data
 import qualified Data.Map.Lazy as Map
-import           Data.Monoid ((<>))
+import           Data.Monoid
 import qualified Data.Text as T
 import           Data.Time
 import           Data.Typeable

@@ -1,4 +1,4 @@
--- |Tn - a simple journal program
+-- Tn - a simple journal program
 -- Copyright (C) 2015 Peter Harpending
 -- 
 -- === License disclaimer 
@@ -15,6 +15,18 @@
 -- 
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-- | 
+-- Module      : Tn.Meat
+-- Description : The interesting part of tn
+-- Copyright   : Copyright (C) 2015 Peter Harpending
+-- License     : GPL-3
+-- Maintainer  : Peter Harpending <peter@harpending.org>
+-- Stability   : experimental
+-- Portability : UNIX/GHC
+-- 
+-- This is the slightly less boring part of @tn@. This module contains
+-- the code to edit diary entries.
 
 module Tn.Meat where
 

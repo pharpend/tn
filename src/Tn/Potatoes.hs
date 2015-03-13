@@ -1,4 +1,4 @@
--- |Tn - a simple journal program
+-- Tn - a simple journal program
 -- Copyright (C) 2015 Peter Harpending
 -- 
 -- === License disclaimer 
@@ -15,7 +15,20 @@
 -- 
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-- | 
+-- Module      : Tn.Potatoes
+-- Description : The slightly more interesting stuff in tn
+-- Copyright   : Copyright (C) 2015 Peter Harpending
+-- License     : GPL-3
+-- Maintainer  : Peter Harpending <peter@harpending.org>
+-- Stability   : experimental
+-- Portability : UNIX/GHC
 -- 
+-- This is the slightly more interesting stuff in @tn@. The name is a
+-- pun on the idiom \"meat & potatoes\"; this is the potatoes,
+-- "Tn.Meat" is the meat. The meat is obviously better than the
+-- potatoes.
 
 module Tn.Potatoes where
 

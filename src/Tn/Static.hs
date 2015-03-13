@@ -1,4 +1,4 @@
--- |Tn - a simple journal program
+-- Tn - a simple journal program
 -- Copyright (C) 2015 Peter Harpending
 -- 
 -- === License disclaimer 
@@ -15,7 +15,18 @@
 -- 
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-- | 
+-- Module      : Tn.Static
+-- Description : Boring static variables for tn
+-- Copyright   : Copyright (C) 2015 Peter Harpending
+-- License     : GPL-3
+-- Maintainer  : Peter Harpending <peter@harpending.org>
+-- Stability   : experimental
+-- Portability : UNIX/GHC
 -- 
+-- This module just contains boring static stuff that is needed
+-- throughout @tn@, like types, variables, instances, stuff like that.
 
 module Tn.Static where
 

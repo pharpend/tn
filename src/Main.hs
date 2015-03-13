@@ -1,4 +1,4 @@
--- |Tn - a simple journal program
+-- Tn - a simple journal program
 -- Copyright (C) 2015 Peter Harpending
 -- 
 -- === License disclaimer 
@@ -15,14 +15,23 @@
 -- 
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-- | 
+-- Module      : Main
+-- Description : Runs tn
+-- Copyright   : Copyright (C) 2015 Peter Harpending
+-- License     : GPL-3
+-- Maintainer  : Peter Harpending <peter@harpending.org>
+-- Stability   : experimental
+-- Portability : UNIX/GHC
 -- 
--- == Boring code 
--- 
--- Here's the module declaration:
+-- This runs @tn@. This module isn't very interesting, it just
+-- processes command line arguments, and then sends the relevant
+-- information to "Tn.Meat".
 
 module Main where
 
--- |It's not very interesting. Here are some imports:
+-- |Here are some imports:
 
 import           Control.Applicative
 import qualified Data.ByteString as B

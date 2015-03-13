@@ -32,6 +32,7 @@ import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import           Data.Time
 import           Data.Typeable
+import           Data.Version
 import           Data.Yaml
 import           Paths_tn (version)
 import           Safe
@@ -87,17 +88,18 @@ td :: FilePath
 td = "/tmp"
 
 -- |Dummy help thing
-help = putStrLn "No help for you"
 help :: IO ()
+help = putStrLn "No help for you"
+
+-- | Will output @tn v.4.12.4@, if @4.12.4@ is the version.
+tnVersion :: String
+tnVersion = showVersion version
 
 -- |==== Technically not variables
 -- 
 -- Okay, these aren't really variables, but they sort of serve the same purpose
 today :: IO Day
 today = utctDay <$> getCurrentTime
-
-tnVersion :: IO ()
-tnVersion = print version
 
 getHypotheticalDataFileName :: String -> IO FilePath
 getHypotheticalDataFileName s = do

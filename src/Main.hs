@@ -86,11 +86,26 @@ editor = tryIOError (getEnv "EDITOR") >>= \case
 td :: FilePath
 td = "/tmp"
 
+-- |Dummy help thing
+help = putStrLn "No help for you"
+
 -- |==== Technically not variables
 -- 
 -- Okay, these aren't really variables, but they sort of serve the same purpose
 today :: IO Day
 today = utctDay <$> getCurrentTime
+
+tnVersion :: IO ()
+tnVersion = print version
+
+getHypotheticalDataFileName :: String -> IO FilePath
+getHypotheticalDataFileName s = do
+  dir <- tnDir
+  return $ dir <> s
+
+-- |Initialize directory
+initialize :: IO ()
+initialize = createDirectoryIfMissing False =<< tnDir
 
 -- |Subtract some number of days from today. So, yesterday would be
 -- @todayMinus 1@.
@@ -166,17 +181,3 @@ launchEditor dy = do
 editToday :: IO ()
 editToday = editEntry =<< today
 
-help = putStrLn "yay"
-
-tnVersion :: IO ()
-tnVersion = print version
-
-
-getHypotheticalDataFileName :: String -> IO FilePath
-getHypotheticalDataFileName s = do
-  dir <- tnDir
-  return $ dir <> s
-
--- |Initialize directory
-initialize :: IO ()
-initialize = createDirectoryIfMissing False =<< tnDir

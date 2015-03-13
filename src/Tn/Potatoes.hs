@@ -81,11 +81,24 @@ today = utctDay <$> getCurrentTime
 todayMinus :: Integer -> IO Day
 todayMinus i = addDays (-1 * i) <$> today
 
--- |Given a 
-filterComments :: String -> String
-filterComments = unlines . filter notAComment . lines
+-- |Get rid of the comments
+filterComments :: Text -> Text
+filterComments = T.unlines . filter notAComment . T.lines
   where 
-    notAComment :: String -> Bool
-    notAComment s = take 2 (noLeadingWhitespace s) /= ";;"
-    noLeadingWhitespace :: String -> String
-    noLeadingWhitespace = takeWhile (not . isSpace)
+    notAComment :: Text -> Bool
+    notAComment s = T.take 2 (noLeadingWhitespace s) /= ";;"
+    noLeadingWhitespace :: Text -> Text
+    noLeadingWhitespace = T.dropWhile isSpace
+
+-- |Delete trailing whitespace, but make sure it ends with a newline
+deleteTrailingWhitespace :: Text -> Text
+deleteTrailingWhitespace = T.unlines . composeChain . T.lines
+  where
+    composeChain :: [Text] -> [Text]
+    composeChain = addNewlines . getRidOfTrailingBlanks . map deleteAllTrails 
+    deleteAllTrails :: Text -> Text
+    deleteAllTrails = T.dropWhileEnd isSpace
+    getRidOfTrailingBlanks :: [Text] -> [Text]
+    getRidOfTrailingBlanks = dropWhileEnd T.null
+    addNewlines :: [Text] -> [Text]
+    addNewlines = map (<> "\n")

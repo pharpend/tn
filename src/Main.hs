@@ -97,6 +97,21 @@ tnVersion = showVersion version
 
 -- |==== Technically not variables
 -- 
+-- |This is the text that will show up in the editor
+dailyTemplate :: Day -> IO String
+dailyTemplate dy = do
+  return $ mconcat
+             [ "\n"
+             , "\n;; Date: "
+             , show dy
+             , "\n;;"
+             , "\n;; By the way, that date is in UTC time, so it might be different than the date"
+             , "\n;; in your local time."
+             , "\n;; "
+             , "\n;; Lines starting with ';;' will be ignored."
+             , "\n"
+             ]
+
 -- Okay, these aren't really variables, but they sort of serve the same purpose
 today :: IO Day
 today = utctDay <$> getCurrentTime

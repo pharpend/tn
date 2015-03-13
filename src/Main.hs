@@ -88,6 +88,7 @@ td = "/tmp"
 
 -- |Dummy help thing
 help = putStrLn "No help for you"
+help :: IO ()
 
 -- |==== Technically not variables
 -- 

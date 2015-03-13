@@ -33,7 +33,10 @@ cabal-version:       >=1.10
 
 executable tn
   main-is:             Main.hs
-  -- other-modules:       
+  other-modules:
+      Tn.Meat
+    , Tn.Potatoes
+    , Tn.Static
   -- other-extensions:    
   default-extensions:          
     OverloadedStrings
@@ -49,7 +52,6 @@ executable tn
                      , safe ==0.3.*
                      , text
                      , time
-                     , yaml ==0.8.*
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall

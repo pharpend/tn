@@ -15,14 +15,8 @@
 -- 
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
--- 
--- == Boring code 
--- 
--- Here's the module declaration:
 
-module Main where
-
--- |It's not very interesting. Here are some imports:
+module Tn.Meat where
 
 import           Control.Applicative
 import qualified Data.ByteString as B
@@ -44,44 +38,28 @@ import           System.Exit
 import           System.IO
 import           System.IO.Error
 import           System.Process
-import           Tn.Meat
 import           Tn.Potatoes
 import           Tn.Static
 
--- |=== Let's get 'main' out of the way
--- 
--- I don't like putting 'main' at the end, so I'm just going to put it
--- here. We'll define each of the function later
--- 
-main :: IO ()
-main = do
-  -- Get the arguments
-  args <- getArgs
-  -- @--help@ gets first priority
-  if or ["--help" `elem` args, "-h" `elem` args]
-    then help
-    else if "--version" `elem` args
-           then putStrLn tnVersion
-           else runTn
+-- |=== The meat 
+--  
+--  Okay, here's a function to edit the entry of a specific 'Day' (which
+--  is from "Data.Time").
+--  
+--  Right now, it just launches the editor
+editEntry :: Day -> IO ()
+editEntry dy = do
+  -- The filepath and the handle
+  (fp, h) <- openTempFile td thisApp
+  hSetBuffering h NoBuffering
+  hPutStr h =<< dailyTemplate dy
+  e <- editor
+  -- The process
+  pc <- runCommand $ e <> " " <> fp
+  _ <- waitForProcess pc
+  hClose h
+  x <- filterComments <$> readFile fp
+  print $ Map.fromList [(dy, x)]
 
--- |Main was getting a bit long, so I took the latter half of it and
--- put it into another function.
-runTn :: IO ()
-runTn = do
-  initialize
-  args <- getArgs
-  let fstarg = headMay args
-      rstof = tailMay args
-  case fstarg of
-    Nothing -> editToday
-    Just cmd ->
-      case cmd of
-        "edit" ->
-          case rstof of
-            Just (s:_) ->
-              case readMay s of
-                Nothing -> help
-                Just d  -> editEntry d
-            _ -> help
-        _ -> help
-
+editToday :: IO ()
+editToday = editEntry =<< today

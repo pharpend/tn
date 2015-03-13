@@ -185,15 +185,18 @@ runTn = do
 --  
 --  Right now, it just launches the editor
 editEntry :: Day -> IO ()
-editEntry _ = do
+editEntry dy = do
   -- The filepath and the handle
   (fp, h) <- openTempFile td thisApp
+  hSetBuffering h NoBuffering
+  hPutStr h =<< dailyTemplate dy
   e <- editor
   -- The process
   pc <- runCommand $ e <> " " <> fp
-  ec <- waitForProcess pc
+  _ <- waitForProcess pc
   hClose h
-  return ()
+  x <- filterComments <$> readFile fp
+  print $ Map.fromList [(dy, x)]
 
 editToday :: IO ()
 editToday = editEntry =<< today

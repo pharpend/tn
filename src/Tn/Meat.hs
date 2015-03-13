@@ -39,6 +39,7 @@ import           Data.Data
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import qualified Data.Text as T
+import qualified Data.Text.IO as Tio
 import           Data.Time
 import           Data.Typeable
 import           Data.Version
@@ -59,19 +60,35 @@ import           Tn.Static
 --  is from "Data.Time").
 --  
 --  Right now, it just launches the editor
-editEntry :: Day -> IO ()
-editEntry dy = do
-  -- The filepath and the handle
+editEntry :: Journal -> Day -> IO ()
+editEntry j dy = do
+  -- Look up the entry
+  let ety = case Map.lookup dy j of
+        -- If it's there, just get it
+        Just e -> e
+        -- Else, make a blank one
+        Nothing -> ""
+  print =<< popEditor ety dy
+
+editToday :: Journal -> IO ()
+editToday j = editEntry =<< today
+
+-- |Edit the entry
+popEditor :: Entry -> Day -> IO Entry
+popEditor ety dy = do
+  -- Open a temporary file
   (fp, h) <- openTempFile td thisApp
+  -- No need for hFlush
   hSetBuffering h NoBuffering
+  -- Write the entry to the file
+  Tio.hPutStr h ety
+  -- Write the daily template
   hPutStr h =<< dailyTemplate dy
+  -- This is the user's editor
   e <- editor
-  -- The process
+  -- Open the editor, wait for it to close
   pc <- runCommand $ e <> " " <> fp
   _ <- waitForProcess pc
   hClose h
-  x <- filterComments <$> readFile fp
-  print $ Map.fromList [(dy, x)]
-
-editToday :: IO ()
-editToday = editEntry =<< today
+  -- return the file, comments filtered out
+  fmap deleteTrailingWhitespace . fmap filterComments $ readFile fp 

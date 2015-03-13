@@ -39,7 +39,9 @@ executable tn
     OverloadedStrings
     LambdaCase
     DeriveDataTypeable
-  build-depends:       base ==4.7.*
+  build-depends:       aeson ==0.8.*
+                     , aeson-pretty ==0.7.*
+                     , base ==4.7.*
                      , bytestring ==0.10.*
                      , containers ==0.5.*
                      , directory ==1.2.*

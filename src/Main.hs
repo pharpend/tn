@@ -127,11 +127,9 @@ main = do
   -- @--help@ gets first priority
   if or ["--help" `elem` args, "-h" `elem` args]
     then help
-    -- @--version@ gets second priority
     else if "--version" `elem` args
-      then tnVersion
-      -- Otherwise just run the thing
-      else runTn
+           then putStrLn tnVersion
+           else runTn
 
 -- |Main was getting a bit long, so I took the latter half of it and
 -- put it into another function.

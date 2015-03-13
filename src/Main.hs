@@ -135,14 +135,10 @@ main = do
 -- put it into another function.
 runTn :: IO ()
 runTn = do
-  -- First, initialize!
   initialize
-  -- First, let's get the command line arguments
   args <- getArgs
-  -- Then split'm up
   let fstarg = headMay args
       rstof = tailMay args
-  -- Case statement them
   case fstarg of
     Nothing -> editToday
     Just cmd ->

@@ -115,9 +115,6 @@ dailyTemplate dy = do
 -- |==== Technically not variables
 -- 
 -- Okay, these aren't really variables, but they sort of serve the same purpose
-today :: IO Day
-today = utctDay <$> getCurrentTime
-
 getHypotheticalDataFileName :: String -> IO FilePath
 getHypotheticalDataFileName s = do
   dir <- tnDir
@@ -127,7 +124,11 @@ getHypotheticalDataFileName s = do
 initialize :: IO ()
 initialize = createDirectoryIfMissing False =<< tnDir
 
--- |Subtract some number of days from today. So, yesterday would be
+-- |Today
+today :: IO Day
+today = utctDay <$> getCurrentTime
+
+-- |Subtract some number of days from 'today'. So, yesterday would be
 -- @todayMinus 1@.
 todayMinus :: Integer -> IO Day
 todayMinus i = addDays (-1 * i) <$> today

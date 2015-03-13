@@ -128,12 +128,9 @@ runTn = do
       rstof = tailMay args
   -- Case statement them
   case fstarg of
-    -- The default action is to edit today's entry
     Nothing -> editToday
-    -- Otherwise...
     Just cmd ->
       case cmd of
-        -- Edit a specific day
         "edit" ->
           case rstof of
             Just (s:_) ->
@@ -141,7 +138,6 @@ runTn = do
                 Nothing -> help
                 Just d  -> editEntry d
             _ -> help
-        -- Otherwise just... well who cares at this point?
         _ -> help
 
 -- |=== The meat & potatoes

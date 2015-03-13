@@ -157,23 +157,17 @@ runTn = do
 --  Okay, here's a function to edit the entry of a specific 'Day' (which
 --  is from "Data.Time").
 --  
---  Right now, it's just an alias to launch the editor
+--  Right now, it just launches the editor
 editEntry :: Day -> IO ()
-editEntry = launchEditor
-
--- |Launch 'editor' to edit the entry for today.
-launchEditor :: Day -> IO ()
-launchEditor dy = do
-  -- The filepath and the handl
+editEntry _ = do
+  -- The filepath and the handle
   (fp, h) <- openTempFile td thisApp
   e <- editor
   -- The process
   pc <- runCommand $ e <> " " <> fp
   ec <- waitForProcess pc
-  print ec
   hClose h
-  print =<< readFile fp
+  return ()
 
 editToday :: IO ()
 editToday = editEntry =<< today
-

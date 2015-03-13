@@ -120,7 +120,7 @@ getHypotheticalDataFileName s = do
   dir <- tnDir
   return $ dir <> s
 
--- |Initialize directory
+-- |Initialize the data directory
 initialize :: IO ()
 initialize = createDirectoryIfMissing False =<< tnDir
 

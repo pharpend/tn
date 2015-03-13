@@ -115,9 +115,8 @@ main = do
       -- Otherwise just run the thing
       else runTn
 
--- Main was getting a bit long, so I took the latter half of it and put
--- it into another function.
-
+-- |Main was getting a bit long, so I took the latter half of it and
+-- put it into another function.
 runTn :: IO ()
 runTn = do
   -- First, initialize!

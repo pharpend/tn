@@ -91,6 +91,5 @@ td = "/tmp"
 help :: IO ()
 help = putStrLn "No help for you"
 
--- | Will output @tn v.4.12.4@, if @4.12.4@ is the version.
 tnVersion :: String
 tnVersion = showVersion version

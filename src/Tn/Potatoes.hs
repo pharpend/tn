@@ -43,9 +43,10 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time
 import           Data.Yaml
+import           Prelude hiding (getContents)
 import           System.Directory
 import           System.Exit
-import           System.IO
+import           System.IO hiding (getContents)
 import           System.IO.Error
 import           Tn.Static
 
@@ -75,11 +76,24 @@ getHypotheticalDataFileName s = do
   dir <- tnDir
   return $ dir <> s
 
--- |Initialize the data directory
-initialize :: IO Journal
+-- |Read the config file and the journal
+initialize :: IO Tn
 initialize = do
   createDirectoryIfMissing False =<< tnDir
-  jfp <- journalFilePath
+  -- Read the journal
+  journalStr <- getContents =<< journalFilePath
+  jnl <- case decodeEither journalStr of
+           Left err -> fail err
+           Right j  -> return j
+  -- Read the configuration
+  configStr <- getContents =<< configFilePath
+  cfg <- case decodeEither configStr of
+           Left err -> fail err
+           Right c  -> return c
+  return $ Tn jnl cfg
+  
+getContents :: FilePath -> IO B.ByteString
+getContents jfp = do
   let handleError err
         | isDoesNotExistError err = do
             h <- openFile jfp WriteMode
@@ -90,11 +104,7 @@ initialize = do
             exitFailure
   hdl <- flip catchIOError handleError $ openFile jfp ReadMode
   hSetBinaryMode hdl True
-  s <- B.hGetContents hdl
-  case decodeEither s of
-    Left err -> fail err
-    Right j  -> return j
-
+  B.hGetContents hdl
 
 -- |Today
 today :: IO Day

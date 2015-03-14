@@ -36,6 +36,7 @@ import           Data.Char
 import           Data.Data
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as Tio
 import           Data.Time
@@ -59,22 +60,22 @@ import           Tn.Static
 --  is from "Data.Time").
 --  
 --  Right now, it just launches the editor
-editEntry :: Journal -> Day -> IO ()
-editEntry j dy = do
+editEntry :: Tn -> Day -> IO ()
+editEntry tn@(Tn jnl cfg) dy = do
   -- Look up the entry
-  let ety = case Map.lookup dy j of
+  let ety = case Map.lookup dy jnl of
         -- If it's there, just get it
         Just e -> e
         -- Else, make a blank one
         Nothing -> ""
-  print =<< popEditor ety dy
+  print =<< popEditor (tnEditor cfg) ety dy
 
-editToday :: Journal -> IO ()
+editToday :: Tn -> IO ()
 editToday j = editEntry j =<< today
 
 -- |Edit the entry
-popEditor :: Entry -> Day -> IO Entry
-popEditor ety dy = do
+popEditor :: Text -> Entry -> Day -> IO Entry
+popEditor theEditor ety dy = do
   -- Open a temporary file
   (fp, h) <- openTempFile td thisApp
   -- No need for hFlush
@@ -83,10 +84,8 @@ popEditor ety dy = do
   Tio.hPutStr h ety
   -- Write the daily template
   hPutStr h =<< dailyTemplate dy
-  -- This is the user's editor
-  e <- editor
   -- Open the editor, wait for it to close
-  pc <- runCommand $ e <> " " <> fp
+  pc <- runCommand $ (T.unpack theEditor) <> " " <> fp
   _ <- waitForProcess pc
   hClose h
   -- return the file, comments filtered out

@@ -35,8 +35,6 @@ module Main where
 
 import           Control.Applicative
 import qualified Data.ByteString as B
-import           Data.Aeson
-import           Data.Aeson.Encode.Pretty
 import           Data.Char
 import           Data.Data
 import qualified Data.Map.Lazy as Map

@@ -91,4 +91,4 @@ popEditor ety dy = do
   _ <- waitForProcess pc
   hClose h
   -- return the file, comments filtered out
-  fmap deleteTrailingWhitespace . fmap filterComments $ readFile fp 
+  fmap deleteTrailingWhitespace . fmap filterComments $ Tio.readFile fp 

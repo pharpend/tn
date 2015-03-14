@@ -135,12 +135,3 @@ deleteTrailingWhitespace = T.unlines . composeChain . T.lines
     getRidOfTrailingBlanks :: [Text] -> [Text]
     getRidOfTrailingBlanks = dropWhileEnd T.null
 
-instance FromJSON Journal where
-  parseJSON o@(Object v) = do
-    q <- parseJSON o
-    return $ M.mapKeys read q
-  parseJSON _ = mzero
-
-instance FromJSON TnConfig where
-  parseJSON (Object v) = TnConfig <$> v .: "editor"
-  parseJSON _ = mzero

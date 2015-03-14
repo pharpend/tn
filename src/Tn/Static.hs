@@ -31,12 +31,14 @@
 module Tn.Static where
 
 import           Control.Applicative
+import           Control.Monad
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import qualified Data.Text as T
 import           Data.Text (Text)
 import           Data.Time
 import           Data.Version
+import           Data.Yaml
 import           Paths_tn (version)
 import           System.Directory
 import           System.Environment
@@ -85,7 +87,7 @@ tnDir = getAppUserDataDirectory thisApp
 
 -- |Next, the journal file
 journalFilePath :: IO FilePath
-journalFilePath = (`mappend` "/journal.json") <$> tnDir
+journalFilePath = (`mappend` "/journal.yml") <$> tnDir
 
 -- |Next, the config file
 configFilePath :: IO FilePath
@@ -108,3 +110,25 @@ help = putStrLn "No help for you"
 
 tnVersion :: String
 tnVersion = showVersion version
+
+instance FromJSON Journal where
+  parseJSON o@(Object v) = do
+    q <- parseJSON o
+    return $ Map.mapKeys read q
+  parseJSON _ = mzero
+
+instance ToJSON Journal where
+  toJSON j = do
+    let lessFancyJournal = Map.mapKeys show j
+    toJSON lessFancyJournal
+
+instance FromJSON (IO TnConfig) where
+  parseJSON (Object v) = do
+    e <- v .:? "editor" >>= \case
+           Just e  -> pure (pure e :: IO Text)
+           Nothing -> pure ((T.pack <$> editor) :: IO Text)
+    pure $ ((TnConfig <$> e) :: IO TnConfig)
+  parseJSON _ = mzero
+
+instance ToJSON TnConfig where
+  toJSON (TnConfig ed) = object [("editor", String ed)]

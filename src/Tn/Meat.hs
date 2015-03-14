@@ -68,7 +68,11 @@ editEntry tn@(Tn jnl cfg) dy = do
         Just e -> e
         -- Else, make a blank one
         Nothing -> ""
-  print =<< popEditor (tnEditor cfg) ety dy
+  newEntryText <- popEditor (tnEditor cfg) ety dy
+  let
+    newJournal = Map.insert dy newEntryText jnl
+    newTn = tn {tnJournal = newJournal}
+  writeNewTn newTn
 
 editToday :: Tn -> IO ()
 editToday j = editEntry j =<< today
@@ -90,3 +94,12 @@ popEditor theEditor ety dy = do
   hClose h
   -- return the file, comments filtered out
   fmap deleteTrailingWhitespace . fmap filterComments $ Tio.readFile fp 
+
+-- |Write the Tn to a file
+writeNewTn :: Tn -> IO ()
+writeNewTn tn = do
+  -- Config part
+  cfp <- configFilePath
+  encodeFile cfp $ tnConfig tn
+  jfp <- journalFilePath
+  encodeFile jfp $ tnJournal tn

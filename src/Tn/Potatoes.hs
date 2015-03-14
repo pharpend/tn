@@ -45,7 +45,6 @@ import           Data.Time
 import           Data.Yaml
 import           Prelude hiding (getContents)
 import           System.Directory
-import           System.Exit
 import           System.IO hiding (getContents)
 import           System.IO.Error
 import           Tn.Static

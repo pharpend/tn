@@ -2,32 +2,17 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                tn
-version:             1.0.1
+version:             1.0.2
 synopsis:            A simple daily journal program
--- description:         
+description:
+  tn is a simple program to keep daily journals. It's terrible right now, so
+  please don't try to use it.
 license:             GPL-3
 license-file:        LICENSE
 author:              Peter Harpending
 maintainer:          Peter Harpending <peter@harpending.org>
 bug-reports:         https://notabug.org/pharpend/tn/issues/new
-copyright:           
-    tn - a simple daily journal program
-
-    Copyright (C) 2015 Peter Harpending
-     
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-     
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-     
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+copyright:           Copyright (C) 2015 Peter Harpending
 category:            Text
 build-type:          Simple
 -- extra-source-files:  
@@ -67,5 +52,5 @@ source-repository head
 source-repository this
   type: git
   location: ssh://git@notabug.org/pharpend/tn.git
-  tag: 1.0.1
+  tag: 1.0.2
                   

@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                tn
-version:             1.0.0
+version:             1.0.1
 synopsis:            A simple daily journal program
 -- description:         
 license:             GPL-3

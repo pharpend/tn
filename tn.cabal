@@ -37,6 +37,7 @@ executable tn
       Tn.Meat
     , Tn.Potatoes
     , Tn.Static
+    , Paths_tn
   -- other-extensions:    
   default-extensions:          
     OverloadedStrings

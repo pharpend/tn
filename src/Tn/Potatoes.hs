@@ -33,7 +33,7 @@
 module Tn.Potatoes where
 
 import           Control.Applicative
-import           Data.Aeson
+import           Control.Monad
 import qualified Data.ByteString as B
 import           Data.Char
 import qualified Data.Map.Lazy as M
@@ -42,6 +42,7 @@ import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time
+import           Data.Yaml
 import           System.Directory
 import           System.Exit
 import           System.IO
@@ -82,8 +83,6 @@ initialize = do
   let handleError err
         | isDoesNotExistError err = do
             h <- openFile jfp WriteMode
-            hSetBuffering h NoBuffering
-            B.hPut h "{}"
             hClose h
             openFile jfp ReadMode
         | otherwise = do
@@ -91,11 +90,10 @@ initialize = do
             exitFailure
   hdl <- flip catchIOError handleError $ openFile jfp ReadMode
   hSetBinaryMode hdl True
-  s <- B.hGetContents hdl 
-  jnl <- case eitherDecodeStrict s of
+  s <- B.hGetContents hdl
+  case decodeEither s of
     Left err -> fail err
     Right j  -> return j
-  return $ M.mapKeys read jnl
 
 
 -- |Today
@@ -127,4 +125,12 @@ deleteTrailingWhitespace = T.unlines . composeChain . T.lines
     getRidOfTrailingBlanks :: [Text] -> [Text]
     getRidOfTrailingBlanks = dropWhileEnd T.null
 
-type IntermittentType = M.Map String Entry
+instance FromJSON Journal where
+  parseJSON o@(Object v) = do
+    q <- parseJSON o
+    return $ M.mapKeys read q
+  parseJSON _ = mzero
+
+instance FromJSON TnConfig where
+  parseJSON (Object v) = TnConfig <$> v .: "editor"
+  parseJSON _ = mzero

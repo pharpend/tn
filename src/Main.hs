@@ -31,7 +31,7 @@
 
 module Main where
 
--- |Here are some imports:
+-- Here are some imports:
 
 import           Control.Applicative
 import qualified Data.ByteString as B

@@ -75,12 +75,12 @@ main = do
 -- put it into another function.
 runTn :: IO ()
 runTn = do
-  thej <- initialize
+  theTn <- initialize
   args <- getArgs
   let fstarg = headMay args
       rstof = tailMay args
   case fstarg of
-    Nothing -> editToday thej
+    Nothing -> editToday theTn
     Just cmd ->
       case cmd of
         "edit" ->
@@ -88,7 +88,7 @@ runTn = do
             Just (s:_) ->
               case readMay s of
                 Nothing -> help
-                Just d  -> editEntry thej d
+                Just d  -> editEntry theTn d
             _ -> help
         _ -> help
 

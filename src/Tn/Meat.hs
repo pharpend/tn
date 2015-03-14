@@ -71,7 +71,7 @@ editEntry j dy = do
   print =<< popEditor ety dy
 
 editToday :: Journal -> IO ()
-editToday j = editEntry =<< today
+editToday j = editEntry j =<< today
 
 -- |Edit the entry
 popEditor :: Entry -> Day -> IO Entry

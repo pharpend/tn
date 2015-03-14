@@ -57,7 +57,7 @@ type Journal = Map.Map Day Entry
 type Entry = T.Text
 
 -- |A type for the configuration
-data TnConfig = TnConfig { editor :: Text }
+data TnConfig = TnConfig { tnEditor :: Text }
   deriving (Show, Eq)
 
 -- |A congomerative type

@@ -32,8 +32,6 @@ module Tn.Meat where
 
 import           Control.Applicative
 import qualified Data.ByteString as B
-import           Data.Aeson
-import           Data.Aeson.Encode.Pretty
 import           Data.Char
 import           Data.Data
 import qualified Data.Map.Lazy as Map
@@ -43,6 +41,7 @@ import qualified Data.Text.IO as Tio
 import           Data.Time
 import           Data.Typeable
 import           Data.Version
+import           Data.Yaml
 import           Paths_tn (version)
 import           Safe
 import           System.Directory

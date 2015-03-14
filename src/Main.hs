@@ -33,24 +33,8 @@ module Main where
 
 -- Here are some imports:
 
-import           Control.Applicative
-import qualified Data.ByteString as B
-import           Data.Char
-import           Data.Data
-import qualified Data.Map.Lazy as Map
-import           Data.Monoid
-import qualified Data.Text as T
-import           Data.Time
-import           Data.Typeable
-import           Data.Version
-import           Paths_tn (version)
 import           Safe
-import           System.Directory
 import           System.Environment
-import           System.Exit
-import           System.IO
-import           System.IO.Error
-import           System.Process
 import           Tn.Meat
 import           Tn.Potatoes
 import           Tn.Static

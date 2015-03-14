@@ -30,7 +30,6 @@
 
 module Tn.Meat where
 
-import qualified Data.ByteString as B
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import           Data.Text (Text)
@@ -38,7 +37,6 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as Tio
 import           Data.Time
 import           Data.Yaml
-import           Safe
 import           System.IO
 import           System.Process
 import           Tn.Potatoes

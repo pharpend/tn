@@ -37,7 +37,6 @@ import           Control.Monad
 import qualified Data.ByteString as B
 import           Data.Char
 import           Data.List
-import qualified Data.Map.Lazy as M
 import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T

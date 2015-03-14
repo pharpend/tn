@@ -30,7 +30,9 @@
 
 module Tn.Static where
 
+import           Control.Applicative
 import qualified Data.Map.Lazy as Map
+import           Data.Monoid
 import qualified Data.Text as T
 import           Data.Time
 import           Data.Version
@@ -69,6 +71,10 @@ thisApp = "tn"
 -- stored.
 tnDir :: IO FilePath
 tnDir = getAppUserDataDirectory thisApp
+
+-- |Next, the journal file
+journalFilePath :: IO FilePath
+journalFilePath = (`mappend` "/journal.json") <$> tnDir
 
 -- |Next, the editor. Eventually, I'll want to factor this out into a
 -- configuration option in a config file or something.

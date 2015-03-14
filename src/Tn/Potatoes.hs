@@ -33,13 +33,19 @@
 module Tn.Potatoes where
 
 import           Control.Applicative
+import           Data.Aeson
+import qualified Data.ByteString as B
 import           Data.Char
+import qualified Data.Map.Lazy as M
 import           Data.Monoid
 import           Data.List
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time
 import           System.Directory
+import           System.Exit
+import           System.IO
+import           System.IO.Error
 import           Tn.Static
 
 -- |==== Technically not variables
@@ -69,8 +75,28 @@ getHypotheticalDataFileName s = do
   return $ dir <> s
 
 -- |Initialize the data directory
-initialize :: IO ()
-initialize = createDirectoryIfMissing False =<< tnDir
+initialize :: IO Journal
+initialize = do
+  createDirectoryIfMissing False =<< tnDir
+  jfp <- journalFilePath
+  let handleError err
+        | isDoesNotExistError err = do
+            h <- openFile jfp WriteMode
+            hSetBuffering h NoBuffering
+            B.hPut h "{}"
+            hClose h
+            openFile jfp ReadMode
+        | otherwise = do
+            hPutStrLn stderr $ show err
+            exitFailure
+  hdl <- flip catchIOError handleError $ openFile jfp ReadMode
+  hSetBinaryMode hdl True
+  s <- B.hGetContents hdl 
+  jnl <- case eitherDecodeStrict s of
+    Left err -> fail err
+    Right j  -> return j
+  return $ M.mapKeys read jnl
+
 
 -- |Today
 today :: IO Day

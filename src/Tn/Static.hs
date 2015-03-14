@@ -87,6 +87,10 @@ tnDir = getAppUserDataDirectory thisApp
 journalFilePath :: IO FilePath
 journalFilePath = (`mappend` "/journal.json") <$> tnDir
 
+-- |Next, the config file
+configFilePath :: IO FilePath
+configFilePath = (`mappend` "/config.yml") <$> tnDir
+
 -- |Next, the editor. Eventually, I'll want to factor this out into a
 -- configuration option in a config file or something.
 editor :: IO String

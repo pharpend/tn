@@ -112,7 +112,7 @@ tnVersion :: String
 tnVersion = showVersion version
 
 instance FromJSON Journal where
-  parseJSON o@(Object v) = do
+  parseJSON o = do
     q <- parseJSON o
     return $ Map.mapKeys read q
   parseJSON _ = mzero

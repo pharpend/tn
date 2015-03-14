@@ -76,32 +76,76 @@ getHypotheticalDataFileName s = do
   dir <- tnDir
   return $ dir <> s
 
--- |Read the config file and the journal
-initialize :: IO Tn
+-- |Create the relevant directories
+initialize :: IO ()
 initialize = do
   createDirectoryIfMissing False =<< tnDir
+  jfp <- journalFilePath
+  jfpExists <- doesFileExist jfp
+  cfp <- configFilePath
+  cfpExists <- doesFileExist cfp
+  let writeBlank q = openFile q WriteMode >>= \h -> B.hPut h "{}" >> hClose h
+  if not jfpExists
+    then do
+      putStrLn $ "Creating empty journal file: " <> jfp
+      writeBlank jfp
+    else return ()
+  if not cfpExists
+    then do
+      putStrLn $ "Creating empty configuration file: " <> cfp
+      writeBlank cfp
+    else return ()
+  putStrLn "Initialized!"
+-- |Read the config file and the journal
+getTheTn :: IO Tn
+getTheTn = do
   -- Read the journal
   journalStr <- getContents =<< journalFilePath
   jnl <- case decodeEither journalStr of
            Left err -> fail err
            Right j  -> return j
   -- Read the configuration
-  configStr <- getContents =<< configFilePath
-  cfg <- case decodeEither configStr of
+  configStr <- getContents =<< configFilePath :: IO B.ByteString
+  let ioEitherConfig = decodeEither configStr :: Either String (IO TnConfig)
+  cfg <- case ioEitherConfig of
            Left err -> fail err
-           Right c  -> return c
+           Right c  -> c
   return $ Tn jnl cfg
   
 getContents :: FilePath -> IO B.ByteString
 getContents jfp = do
   let handleError err
-        | isDoesNotExistError err = do
-            h <- openFile jfp WriteMode
-            hClose h
-            openFile jfp ReadMode
-        | otherwise = do
-            hPutStrLn stderr $ show err
-            exitFailure
+        | isDoesNotExistError err = ioError . annotateIOError
+                                                err
+                                                (mconcat
+                                                   [ "File does not exist: "
+                                                   , jfp
+                                                   , "\nYou may need to run `tn initialize` first."
+                                                   ])
+                                                Nothing $ Just jfp
+        | otherwise = ioError . annotateIOError
+                                  err
+                                  (mconcat
+                                     [ "\n"
+                                     , "While tn was trying to read:"
+                                     , "\n  "
+                                     , jfp
+                                     , "\n"
+                                     , "It came across this error. Tn doesn't know what to do with it."
+                                     , "\n"
+                                     , "It may be a bug. If so, please report it at"
+                                     , "\n  "
+                                     , "https://notabug.org/pharpend/tn/issues/new"
+                                     , "\n"
+                                     , "or email the developer at"
+                                     , "\n  "
+                                     , "peter@harpending.org"
+                                     , "\n"
+                                     , "Thank you!"
+                                     , "\n"
+                                     ])
+                                  Nothing $ Just jfp
+
   hdl <- flip catchIOError handleError $ openFile jfp ReadMode
   hSetBinaryMode hdl True
   B.hGetContents hdl

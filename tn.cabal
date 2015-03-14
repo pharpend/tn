@@ -60,4 +60,9 @@ executable tn
 source-repository head
   type: git
   location: git@notabug.org:pharpend/tn.git
+
+source-repository this
+  type: git
+  location: git@notabug.org:pharpend/tn.git
+  tag: 1.0.0
                   

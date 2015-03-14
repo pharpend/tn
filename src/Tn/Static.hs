@@ -34,6 +34,7 @@ import           Control.Applicative
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import qualified Data.Text as T
+import           Data.Text (Text)
 import           Data.Time
 import           Data.Version
 import           Paths_tn (version)
@@ -54,6 +55,16 @@ import           System.IO.Error
 type Journal = Map.Map Day Entry
 -- |Entry is just text
 type Entry = T.Text
+
+-- |A type for the configuration
+data TnConfig = TnConfig { editor :: Text }
+  deriving (Show, Eq)
+
+-- |A congomerative type
+data Tn = Tn { tnJournal :: Journal
+             , tnConfig :: TnConfig
+             }
+  deriving (Show, Eq)
 
 -- |=== Variables
 -- 

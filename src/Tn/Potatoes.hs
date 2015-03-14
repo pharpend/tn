@@ -95,10 +95,10 @@ deleteTrailingWhitespace :: Text -> Text
 deleteTrailingWhitespace = T.unlines . composeChain . T.lines
   where
     composeChain :: [Text] -> [Text]
-    composeChain = addNewlines . getRidOfTrailingBlanks . map deleteAllTrails 
+    composeChain = getRidOfTrailingBlanks . map deleteAllTrails 
     deleteAllTrails :: Text -> Text
     deleteAllTrails = T.dropWhileEnd isSpace
     getRidOfTrailingBlanks :: [Text] -> [Text]
     getRidOfTrailingBlanks = dropWhileEnd T.null
-    addNewlines :: [Text] -> [Text]
-    addNewlines = map (<> "\n")
+
+type IntermittentType = M.Map String Entry

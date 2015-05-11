@@ -36,6 +36,7 @@ executable tn
    , conduit-extra >=1.1                  
    , conduit-combinators                  
    , directory                            
+   , editor-open ==0.3.*
    , process >=1.2                        
    , safe                                 
    , text                                 

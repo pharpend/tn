@@ -29,6 +29,7 @@ executable tn
    , directory                            
    , editor-open ==0.3.*
    , process >=1.2                        
+   , resourcet
    , safe                                 
    , text                                 
    , time                                 

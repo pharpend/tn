@@ -1,7 +1,5 @@
--- Tn - a simple journal program
+-- tn - a simple journal program
 -- Copyright (C) 2015 Peter Harpending
--- 
--- === License disclaimer 
 -- 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -31,47 +29,75 @@
 
 module Main where
 
--- Here are some imports:
+import Control.Monad.Trans.Resource
+import Data.Aeson
+import Data.Aeson.Encode.Pretty
+import Data.Conduit
+import Data.Conduit.Attoparsec
+import Data.Conduit.Binary
+import Data.Conduit.Combinators (sinkLazy, print)
+import Data.Conduit.Text (decodeUtf8)
+import Data.Map (Map, insert)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as L
+import Data.Time (UTCTime, getCurrentTime)
+import Prelude hiding (print)
+import System.Directory
+import System.Exit
+import Text.Editor
 
-import           Safe
-import           System.Environment
-import           Tn.Meat
-import           Tn.Potatoes
-import           Tn.Static
+type Journal = Map T.Text L.Text
 
--- |=== Let's get 'main' out of the way
--- 
--- I don't like putting 'main' at the end, so I'm just going to put it
--- here. We'll define each of the function later
--- 
+parseMonad :: (Monad m, FromJSON a) => Value -> m a
+parseMonad v =
+  case fromJSON v of
+    Success a -> pure a
+    Error s -> fail s
+
+journalPath :: IO FilePath
+journalPath =
+  do dataDir <- getAppUserDataDirectory "tn"
+     pure (mappend dataDir "/journal.json")
+
+readJournal :: IO Journal
+readJournal =
+  do jp <- journalPath
+     parseMonad =<<
+       (runResourceT
+          (connect (sourceFile jp)
+                   (sinkParser json)))
+
+writeJournal :: Journal -> IO ()
+writeJournal j =
+  do jp <- journalPath
+     runResourceT
+       (connect (sourceLbs (encode j))
+                (sinkFile jp))
+
+addEntry :: IO ()
+addEntry =
+  do currentTime <- getCurrentTime
+     (exitCode,entry) <-
+       runResourceT
+         (bracketConduit plainTemplate
+                         (toProducer (sourceLbs mempty))
+                         (toConsumer (fuse decodeUtf8 sinkLazy)))
+     case exitCode of
+       a@(ExitFailure _) ->
+         fail (mconcat ["Editor failed with ",show a,"."])
+       ExitSuccess ->
+         do journal <- readJournal
+            let newJournal =
+                  insert (T.pack (show currentTime)) entry journal
+            writeJournal newJournal
+
+ppJournal :: IO ()
+ppJournal =
+  do journal <- readJournal
+     runResourceT
+       (connect (sourceLbs (encodePretty journal))
+                print)
+
+
 main :: IO ()
-main = do
-  -- Get the arguments
-  args <- getArgs
-  -- @--help@ gets first priority
-  if or ["--help" `elem` args, "-h" `elem` args]
-    then help
-    else if "--version" `elem` args
-           then putStrLn tnVersion
-           else runTn
-
--- |Main was getting a bit long, so I took the latter half of it and
--- put it into another function.
-runTn :: IO ()
-runTn = do
-  args <- getArgs
-  let fstarg = headMay args
-      rstof = tailMay args
-  case fstarg of
-    Nothing -> editToday =<< getTheTn
-    Just cmd ->
-      case cmd of
-        "edit" ->
-          case rstof of
-            Just (s:_) ->
-              case readMay s of
-                Nothing -> help
-                Just d  -> getTheTn >>= \theTn -> editEntry theTn d
-            _ -> help
-        "initialize" -> initialize
-        _ -> help
+main = return ()

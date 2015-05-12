@@ -54,6 +54,7 @@ import Data.HashMap.Lazy (HashMap, insert, lookup, fromList)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
 import Data.Time (getCurrentTime)
+import Options.Applicative hiding (Success, action)
 import Prelude hiding (lookup)
 import System.Directory
 import System.Exit
@@ -76,6 +77,10 @@ parseMonad v =
   case fromJSON v of
     Success a -> pure a
     Error s -> fail s
+    
+alt :: Alternative f => [f a] -> f a
+alt [] = empty
+alt (x : xs) = x <|> alt xs
 
 -- |The path to the user's 
 journalsPath :: IO FilePath
@@ -100,16 +105,19 @@ writeJournals journals =
                 (sinkFile jp))
 
 defaultJournal :: IO Journal
-defaultJournal =
+defaultJournal = getJournal "default"
+
+getJournal :: T.Text -> IO Journal
+getJournal s =
   do journals <- readJournals
-     case lookup "default" journals of
+     case lookup s journals of
        Nothing ->
          do jp <- journalsPath
             fail (mappend "Could not find journal \"default\" in " jp)
        Just j -> pure j
 
-addEntry :: Journal -> IO Journal
-addEntry journal =
+addEntryTo :: Journal -> IO Journal
+addEntryTo journal =
   do currentTime <- getCurrentTime
      (exitCode,entry) <-
        runResourceT
@@ -122,11 +130,75 @@ addEntry journal =
        ExitSuccess ->
          pure (insert (T.pack (show currentTime)) entry journal)
 
-ppJournal :: Journal -> IO ()
-ppJournal journal =
-  runResourceT
-    (connect (sourceLbs (mappend (encodePretty journal) "\n"))
-             (sinkHandle stdout))
+addEntry :: T.Text {- |Journal name -} -> IO ()
+addEntry journalName =
+  do journal <- getJournal journalName
+     newJournal <- addEntryTo journal
+     journals <- readJournals
+     let newJournals =
+           insert journalName newJournal journals
+     writeJournals newJournals
+
+ppJournal :: T.Text -> IO ()
+ppJournal journalName =
+  do journal <- getJournal journalName
+     runResourceT
+       (connect (sourceLbs (mappend (encodePretty journal) "\n"))
+                (sinkHandle stdout))
+
+data Args =
+  Args {argsJournal :: String
+       ,argsAction :: Action}
+  deriving (Show)
+data Action
+  = Entry EntryAction
+  | Journal JournalAction
+  deriving (Show)
+            
+data EntryAction
+  = Add
+  | Edit
+  deriving (Show)
+
+data JournalAction
+  = List
+  | PrettyPrint
+  deriving (Show)
+
+argsParser :: ParserInfo Args
+argsParser =
+  info (helper <*>
+        ((pure Args) <*>
+         (strOption (mconcat [short 'j'
+                             ,long "journal"
+                             ,help "Journal on which to operate. See `tn lj` for a list."
+                             ,metavar "NAME"
+                             ,value "default"])) <*>
+         (alt [subparser (command "ae" (info empty mempty))
+              ,subparser (command "ee" (info empty mempty))
+              ,subparser (command "lj" (info empty mempty))
+              ,subparser (command "pp" (info empty mempty))])))
+       (mconcat [fullDesc,progDesc "A simple journal program"])
+
+runArgs :: Args -> IO ()
+runArgs (Args journalName action) =
+  let journalNameText = T.pack journalName
+  in case action of
+       (Entry Add) -> addEntry journalNameText
+       (Entry Edit) ->
+         fail "FIXME: Not implemented"
+       (Journal PrettyPrint) -> ppJournal journalNameText
+       (Journal List) ->
+         fail "FIXME: Not implemented"
+
+mainWith :: [String] -> Maybe Args
+mainWith =
+  getParseResult .
+  execParserPure parserPrefs argsParser
+
+parserPrefs :: ParserPrefs
+parserPrefs =
+  prefs (mconcat [disambiguate,showHelpOnError])
 
 main :: IO ()
-main = pure ()
+main = customExecParser parserPrefs argsParser >>= print

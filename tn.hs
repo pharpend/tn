@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- tn - a simple journal program
 -- Copyright (c) 2014-2015, Peter Harpending.
 -- 
@@ -46,47 +48,68 @@ import Data.Aeson.Encode.Pretty
 import Data.Conduit
 import Data.Conduit.Attoparsec
 import Data.Conduit.Binary
-import Data.Conduit.Combinators (sinkLazy, print)
+import Data.Conduit.Combinators (sinkLazy)
 import Data.Conduit.Text (decodeUtf8)
-import Data.Map (Map, insert)
+import Data.HashMap.Lazy (HashMap, insert, lookup, fromList)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as L
-import Data.Time (UTCTime, getCurrentTime)
-import Prelude hiding (print)
+import Data.Time (getCurrentTime)
+import Prelude hiding (lookup)
 import System.Directory
 import System.Exit
+import System.IO (stdout)
 import Text.Editor
 
-type Journal = Map T.Text L.Text
+type Journal = HashMap T.Text L.Text
+type Journals = HashMap T.Text Journal
 
+initialize :: IO ()
+initialize =
+  do jp <- journalsPath
+     runResourceT
+       (connect (sourceLbs (encode ((fromList [("default",mempty)]) :: Journals)))
+                (sinkFile jp))
+
+-- |Adapted from Data.Yaml.
 parseMonad :: (Monad m, FromJSON a) => Value -> m a
 parseMonad v =
   case fromJSON v of
     Success a -> pure a
     Error s -> fail s
 
-journalPath :: IO FilePath
-journalPath =
+-- |The path to the user's 
+journalsPath :: IO FilePath
+journalsPath =
   do dataDir <- getAppUserDataDirectory "tn"
-     pure (mappend dataDir "/journal.json")
+     pure (mappend dataDir "/journals.json")
 
-readJournal :: IO Journal
-readJournal =
-  do jp <- journalPath
+-- |Read the journals
+readJournals :: IO Journals
+readJournals =
+  do jp <- journalsPath
      parseMonad =<<
        (runResourceT
           (connect (sourceFile jp)
                    (sinkParser json)))
 
-writeJournal :: Journal -> IO ()
-writeJournal j =
-  do jp <- journalPath
+writeJournals :: Journals -> IO ()
+writeJournals journals =
+  do jp <- journalsPath
      runResourceT
-       (connect (sourceLbs (encode j))
+       (connect (sourceLbs (encode journals))
                 (sinkFile jp))
 
-addEntry :: IO ()
-addEntry =
+defaultJournal :: IO Journal
+defaultJournal =
+  do journals <- readJournals
+     case lookup "default" journals of
+       Nothing ->
+         do jp <- journalsPath
+            fail (mappend "Could not find journal \"default\" in " jp)
+       Just j -> pure j
+
+addEntry :: Journal -> IO Journal
+addEntry journal =
   do currentTime <- getCurrentTime
      (exitCode,entry) <-
        runResourceT
@@ -97,18 +120,13 @@ addEntry =
        a@(ExitFailure _) ->
          fail (mconcat ["Editor failed with ",show a,"."])
        ExitSuccess ->
-         do journal <- readJournal
-            let newJournal =
-                  insert (T.pack (show currentTime)) entry journal
-            writeJournal newJournal
+         pure (insert (T.pack (show currentTime)) entry journal)
 
-ppJournal :: IO ()
-ppJournal =
-  do journal <- readJournal
-     runResourceT
-       (connect (sourceLbs (encodePretty journal))
-                print)
-
+ppJournal :: Journal -> IO ()
+ppJournal journal =
+  runResourceT
+    (connect (sourceLbs (mappend (encodePretty journal) "\n"))
+             (sinkHandle stdout))
 
 main :: IO ()
-main = return ()
+main = pure ()

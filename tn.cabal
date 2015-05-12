@@ -22,7 +22,6 @@ executable tn
    , aeson-pretty
    , base ==4.8.*        
    , bytestring
-   , containers                           
    , conduit >=1.2.3                      
    , conduit-extra >=1.1                  
    , conduit-combinators                  
@@ -33,6 +32,7 @@ executable tn
    , safe                                 
    , text                                 
    , time                                 
+   , unordered-containers                           
 
 source-repository head
   type: git

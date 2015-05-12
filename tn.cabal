@@ -21,10 +21,12 @@ executable tn
      aeson
    , aeson-pretty
    , base ==4.8.*        
+   , base16-bytestring
    , bytestring
    , conduit >=1.2.3                      
    , conduit-extra >=1.1                  
    , conduit-combinators                  
+   , crypto-random
    , directory                            
    , editor-open ==0.3.*
    , optparse-applicative

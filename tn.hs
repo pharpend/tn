@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- tn - a simple journal program
 -- Copyright (c) 2014-2015, Peter Harpending.
@@ -42,9 +44,12 @@
 
 module Main where
 
+import Control.Monad (mzero)
 import Control.Monad.Trans.Resource
+import Crypto.Random
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
+import qualified Data.ByteString.Base16 as Bs16
 import Data.Conduit
 import Data.Conduit.Attoparsec
 import Data.Conduit.Binary
@@ -52,8 +57,9 @@ import Data.Conduit.Combinators (sinkLazy)
 import Data.Conduit.Text (decodeUtf8)
 import Data.HashMap.Lazy (HashMap, insert, lookup, fromList)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as E
 import qualified Data.Text.Lazy as L
-import Data.Time (getCurrentTime)
+import Data.Time (UTCTime, getCurrentTime)
 import Options.Applicative hiding (Success, action)
 import Prelude hiding (lookup)
 import System.Directory
@@ -61,8 +67,18 @@ import System.Exit
 import System.IO (stdout)
 import Text.Editor
 
-type Journal = HashMap T.Text L.Text
+data Entry = Entry UTCTime L.Text
+  deriving (Eq, Show)
+type Journal = HashMap T.Text Entry
 type Journals = HashMap T.Text Journal
+
+instance FromJSON Entry where
+  parseJSON (Object v) = Entry <$> v .: "time" <*> v .: "text"
+  parseJSON _ = mzero
+  
+instance ToJSON Entry where
+  toJSON (Entry time_ text_) =
+    object ["time" .= time_,"text" .= text_]
 
 initialize :: IO ()
 initialize =
@@ -119,7 +135,7 @@ getJournal s =
 addEntryTo :: Journal -> IO Journal
 addEntryTo journal =
   do currentTime <- getCurrentTime
-     (exitCode,entry) <-
+     (exitCode,entryText) <-
        runResourceT
          (bracketConduit plainTemplate
                          (toProducer (sourceLbs mempty))
@@ -128,7 +144,20 @@ addEntryTo journal =
        a@(ExitFailure _) ->
          fail (mconcat ["Editor failed with ",show a,"."])
        ExitSuccess ->
-         pure (insert (T.pack (show currentTime)) entry journal)
+         do id <- randomIdentFor journal
+            pure (insert id (Entry currentTime entryText) journal)
+  where randomIdentFor j =
+          do ident <-
+               fmap E.decodeUtf8 (randomIdent 4)
+             case lookup ident journal of
+               -- On the off chance the ident is already in the journal, try again.
+               Just _ -> randomIdentFor j
+               Nothing -> pure ident
+        randomIdent length =
+          fmap cprgCreate createEntropyPool >>=
+          \(rng :: SystemRNG) ->
+            let (bs,_) = cprgGenerate length rng
+            in pure (Bs16.encode bs)
 
 addEntry :: T.Text {- |Journal name -} -> IO ()
 addEntry journalName =
@@ -147,14 +176,14 @@ ppJournal journalName =
                 (sinkHandle stdout))
 
 data Args
-  = Entry String
-          EntryAction
+  = DoEntry String
+            EntryAction
   | Journal JournalAction
   deriving (Show)
             
 data EntryAction
   = Add
-  | Edit
+  | Edit String
   deriving (Show)
 
 data JournalAction
@@ -162,53 +191,80 @@ data JournalAction
   | PrettyPrint String
   deriving (Show)
 
-argsParser :: ParserInfo Args
-argsParser =
-  info (helper <*>
-        (alt [subparser (command "journal"
-                                 (info (helper <*>
-                                        (alt [subparser (command "list"
-                                                                 (info (pure (Journal List))
-                                                                       (mconcat [briefDesc
-                                                                                ,progDesc "List the available journals"
-                                                                                ,tnHeader
-                                                                                ,tnFooter])))
-                                             ,subparser (command "pp"
-                                                                 (info (helper <*>
-                                                                        (Journal <$>
-                                                                         (PrettyPrint <$>
-                                                                          strArgument
-                                                                            (mconcat [help "The journal to print. (Optional)."
-                                                                                     ,metavar "JOURNAL"
-                                                                                     ,value "default"
-                                                                                     ,showDefault]))))
-                                                                       (mconcat [briefDesc
-                                                                                ,progDesc "Pretty-print a journal."
-                                                                                ,tnHeader
-                                                                                ,tnFooter])))]))
-                                       (mconcat [briefDesc
-                                                ,progDesc "Do stuff with journals"
-                                                ,tnHeader
-                                                ,tnFooter])))
-             ,subparser (command "entry"
-                                 (info (helper <*>
-                                        (Entry <$>
-                                         (strOption (mconcat [short 'j'
-                                                             ,long "journal"
-                                                             ,help "Journal on which to operate. See `tn lj` for a list."
-                                                             ,metavar "NAME"
-                                                             ,value "default"])) <*>
-                                         (alt [subparser (command "add" (info empty mempty))
-                                              ,subparser (command "edit" (info empty mempty))])))
-                                       (mconcat [briefDesc
-                                                ,progDesc "Do stuff with entries"
-                                                ,tnHeader
-                                                ,tnFooter])))]))
+argsParserInfo :: ParserInfo Args
+argsParserInfo =
+  info (helper <*> argsParser)
        (mconcat [fullDesc,progDesc "A simple journal program",tnHeader,tnFooter])
+
+argsParser :: Parser Args
+argsParser =
+  (alt [subparser (command "journal"
+                           (info (helper <*> journalArgParser)
+                                 (mconcat [briefDesc
+                                          ,progDesc "Do stuff with journals"
+                                          ,tnHeader
+                                          ,tnFooter])))
+       ,subparser (command "entry"
+                           (info (helper <*> entryArgParser)
+                                 (mconcat [briefDesc
+                                          ,progDesc "Do stuff with entries"
+                                          ,tnHeader
+                                          ,tnFooter])))])
+
+journalArgParser :: Parser Args
+journalArgParser =
+  (alt [subparser (command "list"
+                           (info (helper <*>
+                                  (pure (Journal List)))
+                                 (mconcat [briefDesc
+                                          ,progDesc "List the available journals"
+                                          ,tnHeader
+                                          ,tnFooter])))
+       ,subparser (command "pp"
+                           (info (helper <*>
+                                  (Journal <$>
+                                   (PrettyPrint <$>
+                                    strArgument
+                                      (mconcat [help "The journal to print."
+                                               ,metavar "JOURNAL"
+                                               ,value "default"
+                                               ,showDefault]))))
+                                 (mconcat [briefDesc
+                                          ,progDesc "Pretty-print a journal."
+                                          ,tnHeader
+                                          ,tnFooter])))])
+                                          
+entryArgParser :: Parser Args
+entryArgParser =
+  (DoEntry <$>
+   (strOption (mconcat [short 'j'
+                       ,long "journal"
+                       ,help (unwords ["Journal on which to operate."
+                                      ,"See `tn journal list` for a list."])
+                       ,metavar "NAME"
+                       ,value "default"])) <*>
+   (alt [subparser (command "add"
+                            (info (helper <*>
+                                   (pure Add))
+                                  (mconcat [briefDesc
+                                           ,progDesc "Add an entry."
+                                           ,tnHeader
+                                           ,tnFooter])))
+        ,subparser (command "edit"
+                            (info (helper <*> editEntryArgParser)
+                                  (mconcat [briefDesc
+                                           ,progDesc "Edit a journal entry."
+                                           ,tnHeader
+                                           ,tnFooter])))]))
+
+editEntryArgParser :: Parser EntryAction
+editEntryArgParser =
+  fmap Edit (strArgument (mconcat [help "The entry to edit",metavar "ENTRY"]))
 
 tnHeader :: InfoMod a
 tnHeader =
-  header "Copyright (c) 2014-2015, Peter Harpending. Licensed under the FreeBSD license."
+  header (unwords ["Copyright (c) 2014-2015, Peter Harpending."
+                  ,"Licensed under the FreeBSD license."])
 
 tnFooter :: InfoMod a
 tnFooter = mempty
@@ -216,11 +272,11 @@ tnFooter = mempty
 runArgs :: Args -> IO ()
 runArgs action =
   case action of
-    Entry journalName entryAction ->
+    DoEntry journalName entryAction ->
       let journalNameText = T.pack journalName
       in case entryAction of
            Add -> addEntry journalNameText
-           Edit -> fail "FIXME: Not implemented"
+           Edit _ -> fail "FIXME: Not implemented"
     Journal journalAction ->
       case journalAction of
         PrettyPrint journalName ->
@@ -230,11 +286,13 @@ runArgs action =
 mainWith :: [String] -> Maybe Args
 mainWith =
   getParseResult .
-  execParserPure parserPrefs argsParser
+  execParserPure parserPrefs argsParserInfo
 
 parserPrefs :: ParserPrefs
 parserPrefs =
   prefs (mconcat [disambiguate,showHelpOnError])
 
 main :: IO ()
-main = customExecParser parserPrefs argsParser >>= runArgs
+main =
+  customExecParser parserPrefs argsParserInfo >>=
+  runArgs

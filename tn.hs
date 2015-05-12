@@ -44,11 +44,12 @@
 
 module Main where
 
-import Control.Monad (mzero)
+import Control.Monad (forM_, mzero)
 import Control.Monad.Trans.Resource
 import Crypto.Random
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Base16 as Bs16
 import Data.Conduit
 import Data.Conduit.Attoparsec
@@ -56,12 +57,14 @@ import Data.Conduit.Binary
 import Data.Conduit.Combinators (sinkLazy)
 import Data.Conduit.Text (decodeUtf8)
 import Data.HashMap.Lazy (HashMap, insert, lookup, fromList)
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
+import Data.Text.IO (putStrLn)
 import qualified Data.Text.Lazy as L
 import Data.Time (UTCTime, getCurrentTime)
 import Options.Applicative hiding (Success, action)
-import Prelude hiding (lookup)
+import Prelude hiding (lookup, putStrLn)
 import System.Directory
 import System.Exit
 import System.IO (stdout)
@@ -135,17 +138,11 @@ getJournal s =
 addEntryTo :: Journal -> IO Journal
 addEntryTo journal =
   do currentTime <- getCurrentTime
-     (exitCode,entryText) <-
-       runResourceT
-         (bracketConduit plainTemplate
-                         (toProducer (sourceLbs mempty))
-                         (toConsumer (fuse decodeUtf8 sinkLazy)))
-     case exitCode of
-       a@(ExitFailure _) ->
-         fail (mconcat ["Editor failed with ",show a,"."])
-       ExitSuccess ->
-         do id <- randomIdentFor journal
-            pure (insert id (Entry currentTime entryText) journal)
+     entryText <-
+       fmap (L.fromStrict . E.decodeUtf8)
+            (runUserEditorDWIM plainTemplate mempty)
+     id <- randomIdentFor journal
+     pure (insert id (Entry currentTime entryText) journal)
   where randomIdentFor j =
           do ident <-
                fmap E.decodeUtf8 (randomIdent 4)
@@ -174,6 +171,12 @@ ppJournal journalName =
      runResourceT
        (connect (sourceLbs (mappend (encodePretty journal) "\n"))
                 (sinkHandle stdout))
+                
+listJournals :: IO ()
+listJournals =
+  do journalNames <- fmap M.keys readJournals
+     putStrLn (T.unwords journalNames)
+
 
 data Args
   = DoEntry String
@@ -281,7 +284,7 @@ runArgs action =
       case journalAction of
         PrettyPrint journalName ->
           ppJournal (T.pack journalName)
-        List -> fail "FIXME: Not implemented"
+        List -> listJournals
 
 mainWith :: [String] -> Maybe Args
 mainWith =
@@ -296,3 +299,4 @@ main :: IO ()
 main =
   customExecParser parserPrefs argsParserInfo >>=
   runArgs
+ 

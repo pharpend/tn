@@ -1,5 +1,5 @@
 name:                tn
-version:             2.0.0.0
+version:             3.0.0.0
 synopsis:            A simple daily journal program
 description:
   tn is a simple program to keep journals, licensed under the FreeBSD license.
@@ -7,42 +7,50 @@ license:             BSD2
 license-file:        LICENSE
 author:              Peter Harpending
 maintainer:          peter@harpending.org
-bug-reports:         https://github.com/pharpend/tn
+bug-reports:         https://github.com/pharpend/tn/issues
 copyright:           Copyright (c) 2014-2015, Peter Harpending.
-category:            Text
+category:            Data, Text, Utility
 build-type:          Simple
 cabal-version:       >=1.10
+extra-source-files:
+  README.md
+  LICENSE
+
+library
+  hs-source-dirs:      lib/
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  build-depends:
+      base ==4.*
+  exposed-modules:
+    Tn
 
 executable tn
-  main-is:             tn.hs
+  hs-source-dirs:      src/
   default-language:    Haskell2010
-  ghc-options:         -Wall -fno-warn-orphans -O2
+  ghc-options:         -Wall
+  main-is:             Main.hs
   build-depends:     
-     aeson
-   , aeson-pretty
-   , base ==4.8.*        
-   , base16-bytestring
-   , bytestring
-   , conduit >=1.2.3                      
-   , conduit-extra >=1.1                  
-   , conduit-combinators                  
-   , crypto-random
-   , directory                            
-   , editor-open ==0.3.*
-   , optparse-applicative
-   , process >=1.2                        
-   , resourcet
-   , safe                                 
-   , text                                 
-   , time                                 
-   , unordered-containers                           
+      base ==4.*        
+
+test-suite spec
+  hs-source-dirs:      spec/
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  main-is:             Spec.hs
+  type:                exitcode-stdio-1.0
+  build-depends:
+      base ==4.*
+    , hspec
+    , QuickCheck
+    , tn
 
 source-repository head
-  type: git
-  location: https://github.com/pharpend/tn.git
+  type:                git
+  location:            https://github.com/pharpend/tn.git
 
 source-repository this
-  type: git
-  location: https://github.com/pharpend/tn.git
-  tag: 2.0.0.0
+  type:                git
+  location:            https://github.com/pharpend/tn.git
+  tag:                 3.0.0.0
                   

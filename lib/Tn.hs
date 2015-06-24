@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | 
@@ -16,8 +16,10 @@ module Tn
     module Control.Exceptional
   , fromString
     -- * Core data types
+  , Tn
   , Journal(..)
   , Entry(..)
+    -- ** Newtypes over 'Text'
   , Title
   , titleAcceptChars
   , mkTitle
@@ -25,15 +27,22 @@ module Tn
   , Synopsis
   , mkSynopsis
   , unSynopsis
+    -- ** Making new 'Entry's
+  , newEntry
+  , templateEntry
+    -- * IO
+  , journalPath
+  , readTn
+  , readTnFrom
+  , writeTn
+  , writeTnTo
   )
   where
 
-#if !(MIN_VERSION_base (4,8,0))
-import Data.Monoid
-#endif
-
+import Control.Exception
 import Control.Exceptional
 import Control.Monad (mzero)
+import qualified Data.ByteString as B
 import Data.Ord (comparing)
 import Data.String (IsString(..))
 import Data.Text (Text)
@@ -42,6 +51,12 @@ import Data.Time
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Data.Yaml
+import System.Directory
+import System.IO.Error
+import Text.Editor
+
+-- |The core data type, just a 'Vector' of 'Journal's
+type Tn = Vector Journal
 
 -- |A journal
 data Journal =
@@ -163,3 +178,54 @@ instance FromJSON Synopsis where
 
 instance ToJSON Synopsis where
   toJSON (Synopsis s) = String s
+
+-- |A blank 'Entry', to be sent to the user for editing.
+templateEntry :: IO Entry
+templateEntry = 
+  do now <- getCurrentTime 
+     return $ Entry now
+                    "This is a short (one-line) synopsis of the entry"
+                    (Just $ T.unlines ["This is an optional further entry. It can be as long as you want. You can think"
+                                      ,"of the synopsis as being the subject of an email, and this being the body. If"
+                                      ,"you don't want a further description, delete this field (including the "
+                                      ,"`entry-text:` portion)."])
+
+
+-- |Create a new entry
+newEntry :: IO (Exceptional Entry)
+newEntry = do templateEntry_ <- templateEntry
+              editedEntry <- runUserEditorDWIM yamlTemplate
+                                               (encode templateEntry_)
+              return $ fromEither (decodeEither editedEntry)
+
+-- |The default path to the journal
+-- 
+-- On UNIX, this path is usually
+-- 
+-- > $HOME/.tn/journal.yaml
+journalPath :: IO FilePath 
+journalPath = do dataDir <- getAppUserDataDirectory "tn"
+                 makeAbsolute $ mappend dataDir "/journal.yaml"
+
+-- |Read a 'Tn' from 'journalPath'
+readTn :: IO (Exceptional Tn)
+readTn = readTnFrom =<< journalPath
+
+-- |Read a 'Tn' from a file.
+readTnFrom :: FilePath -> IO (Exceptional Tn)
+readTnFrom fp = 
+  tryIOError (B.readFile fp) `ffmap`
+  \case
+     Left err -> Failure (displayException err)
+     Right bytes -> fromEither (decodeEither bytes)
+  where ffmap = flip fmap
+
+-- |Write a 'Tn' to 'journalPath'
+writeTn :: Tn -> IO ()
+writeTn tn = do path <- journalPath
+                B.writeFile path (encode tn)
+
+-- |Write a 'Tn' to a file
+writeTnTo :: FilePath -> Tn -> IO ()
+writeTnTo fp tn = B.writeFile fp (encode tn)
+

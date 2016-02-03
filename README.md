@@ -35,9 +35,57 @@ So, here are my plans for version 4, which I may or may not follow
 * Tn should, by default, store the data in a XDG-correct location, such
   as `~/.local/share/tn` on UNIX-like systems, or whatever the
   equivalent is on Windows.
+* Tn will eventually allow multiple journals, as well as a hierarchy of
+  journals.
+* Tn will allow that practice of replacing `tn some-long-command` with
+  `tn slc`.
+* Tn should at some point allow a graphical interface, so that people
+  besides UNIX nerds can use it.
+  
+## Installing
+
+The version on Hackage is out of date, and also really terrible, so
+don't try to `cabal install tn` just yet. You'll need [git][git-install]
+and [The Haskell Stack][hs-stack].
+
+    git clone https://github.com/pharpend/tn.git
+    cd tn
+    stack build
+
+I welcome any contributions anyone wants to make. If you find a bug or a
+feature request, use the [GitHub bug tracker][issues]. If you want to
+contribute, use the normal method of contributing to projects on GitHub.
+
+## Usage
+
+There is no usage yet! Check back later!
+
+## Contacting me
+
+You can contact me at `peter@harpending.org`, or `pharpend` on FreeNode.
+
+## Copyright
+
+Copyright (C) 2014-2016 Peter Harpending
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program. If not, see <http://www.gnu.org/licenses/>.
 
 [colemak]: http://colemak.com/
+[git]: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+[github-bug-tracker]: https://github.com/pharpend/tn/issues
 [gpl-gnu]: https://gnu.org/licenses/
+[hs-stack]: http://docs.haskellstack.org/en/stable/README.html
 [mkdn]: https://en.wikipedia.org/wiki/Markdown
 [license-file]: LICENSE
 [pandoc]: http://pandoc.org/

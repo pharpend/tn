@@ -23,14 +23,18 @@ library
   default-extensions:
     LambdaCase
     OverloadedStrings
+    TemplateHaskell
+    Trustworthy
   build-depends:
       base ==4.8.*
     , aeson
+    , optparse-applicative
     , text
     , time
     , vector
   exposed-modules:
     Utility.Tn
+    Utility.Tn.ArgParsing
     Utility.Tn.Types
 
 executable tn

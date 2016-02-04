@@ -25,13 +25,23 @@
 
 module Utility.Tn.ArgParsing where
 
-import Options.Applicative
+import qualified Data.ByteString as B
+import           Data.FileEmbed
+import           Options.Applicative
+import qualified System.IO as IO
 
--- |Equivalent of 'mconcat' for 'Alternative's
-altConcat :: Alternative f
-            => [f a] -> f a
-altConcat [] = empty
-altConcat (x:xs) = x <|> altConcat xs
+tnMain :: IO ()
+tnMain = execParser opts >>= runAction
+  where opts =
+          info (helper <*> actionParser)
+               (mappend fullDesc (progDesc "A small journal program."))
+  
+
+runAction :: TnAction -> IO ()
+runAction ListJournals = fail "I don't know how to list journals yet"
+runAction PrintLicense =
+  do IO.hSetBuffering IO.stdout IO.NoBuffering
+     B.hPut IO.stdout $(embedFile "LICENSE")
 
 -- |What does the user want to do?
 data TnAction
@@ -47,9 +57,15 @@ actionParser = altConcat (fmap subparser [printLicenseCmd,listJournalsCmd])
 printLicenseCmd :: Mod CommandFields TnAction
 printLicenseCmd =
   command "license"
-          (info empty
+          (info (pure PrintLicense)
                 (mconcat [fullDesc,progDesc "Print the license (GPL-3)."]))
 
 -- |Command to list the journals
 listJournalsCmd :: Mod CommandFields TnAction
 listJournalsCmd = mempty
+
+-- |Equivalent of 'mconcat' for 'Alternative's
+altConcat :: Alternative f
+            => [f a] -> f a
+altConcat [] = empty
+altConcat (x:xs) = x <|> altConcat xs

@@ -28,4 +28,4 @@ module Main where
 import Utility.Tn
 
 main :: IO ()
-main = return ()
+main = tnMain

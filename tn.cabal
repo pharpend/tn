@@ -20,21 +20,18 @@ library
   hs-source-dirs:      lib/
   default-language:    Haskell2010
   ghc-options:         -Wall
-  other-extensions:
+  default-extensions:
     LambdaCase
     OverloadedStrings
   build-depends:
       base ==4.8.*
-    , bytestring
-    , directory
-    , editor-open >=0.6
-    , exceptional
+    , aeson
     , text
     , time
     , vector
-    , yaml
   exposed-modules:
-    Tn
+    Utility.Tn
+    Utility.Tn.Types
 
 executable tn
   hs-source-dirs:      src/
@@ -42,7 +39,8 @@ executable tn
   ghc-options:         -Wall
   main-is:             Main.hs
   build-depends:     
-      base ==4.*        
+      base ==4.8.*
+    , tn
 
 test-suite spec
   hs-source-dirs:      spec/

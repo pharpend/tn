@@ -15,17 +15,15 @@
 -- this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -- | 
--- Module      : Main
--- Description : Runs Tn
+-- Module      : Utility.Tn
+-- Description : A small journaling program
 -- Copyright   : Copyright (c) 2014-2016, Peter Harpending.
 -- License     : GPL-3
 -- Maintainer  : peter@harpending.org
 -- Stability   : experimental
 -- Portability : GHC
 
-module Main where
+module Utility.Tn where
 
-import Utility.Tn
-
-main :: IO ()
-main = return ()
+tn :: ()
+tn = ()

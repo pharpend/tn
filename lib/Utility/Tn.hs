@@ -23,7 +23,11 @@
 -- Stability   : experimental
 -- Portability : GHC
 
-module Utility.Tn where
+module Utility.Tn
+       ( module Utility.Tn.ArgParsing
+       , module Utility.Tn.Types
+       )
+       where
 
-tn :: ()
-tn = ()
+import Utility.Tn.ArgParsing
+import Utility.Tn.Types

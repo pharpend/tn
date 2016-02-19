@@ -50,6 +50,7 @@ and [The Haskell Stack][hs-stack].
 
     git clone https://github.com/pharpend/tn.git
     cd tn
+    stack setup
     stack build
 
 I welcome any contributions anyone wants to make. If you find a bug or a

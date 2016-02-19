@@ -35,6 +35,7 @@ library
     , time
     , vector
   exposed-modules:
+    Control.Applicative.AltConcat
     Utility.Tn
     Utility.Tn.ArgParsing
     Utility.Tn.Types

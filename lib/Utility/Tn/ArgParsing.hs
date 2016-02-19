@@ -25,47 +25,57 @@
 
 module Utility.Tn.ArgParsing where
 
+import Control.Applicative.AltConcat
 import qualified Data.ByteString as B
-import           Data.FileEmbed
-import           Options.Applicative
-import qualified System.IO as IO
+import Data.FileEmbed
+import Options.Applicative
+import System.IO
 
 tnMain :: IO ()
 tnMain = execParser opts >>= runAction
-  where opts =
-          info (helper <*> actionParser)
-               (mappend fullDesc (progDesc "A small journal program."))
+  where
+    opts = info (helper <*> actionParser)
+                (mappend fullDesc
+                         (progDesc "A small journal program."))
   
 
 runAction :: TnAction -> IO ()
-runAction ListJournals = fail "I don't know how to list journals yet"
-runAction PrintLicense =
-  do IO.hSetBuffering IO.stdout IO.NoBuffering
-     B.hPut IO.stdout $(embedFile "LICENSE")
+runAction = \case
+  (Journal' _) -> fail "I don't know how to list journals yet"
+  PrintLicense -> do
+    hSetBuffering stdout NoBuffering
+    B.hPut stdout $(embedFile "LICENSE")
 
 -- |What does the user want to do?
 data TnAction
-  = ListJournals
+  = Journal' (Maybe JournalAction)
   | PrintLicense
+  deriving (Show, Eq)
+
+data JournalAction = Dumb  
   deriving (Show, Eq)
 
 -- |Parses the 'TnAction'
 actionParser :: Parser TnAction
-actionParser = altConcat (fmap subparser [printLicenseCmd,listJournalsCmd])
+actionParser =
+  altConcat $ fmap subparser
+    [ journalCmd
+    , printLicenseCmd
+    ]
 
 -- |Command to print the license
 printLicenseCmd :: Mod CommandFields TnAction
-printLicenseCmd =
-  command "license"
-          (info (pure PrintLicense)
-                (mconcat [fullDesc,progDesc "Print the license (GPL-3)."]))
+printLicenseCmd = command "license" $
+  info (pure PrintLicense)
+       (mconcat [ fullDesc
+                , progDesc "Print the license (GPL-3)."
+                ])
 
--- |Command to list the journals
-listJournalsCmd :: Mod CommandFields TnAction
-listJournalsCmd = mempty
-
--- |Equivalent of 'mconcat' for 'Alternative's
-altConcat :: Alternative f
-            => [f a] -> f a
-altConcat [] = empty
-altConcat (x:xs) = x <|> altConcat xs
+-- |Command to invoke journal stuff
+journalCmd :: Mod CommandFields TnAction
+journalCmd =
+  command "journal" $
+    info (pure $ Journal' Nothing)
+         (mconcat [ fullDesc
+                  , progDesc "Do stuff with journals"
+                  ])

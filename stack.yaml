@@ -1,5 +1,6 @@
-flags: {}
+resolver: lts-5.16
 packages:
-- '.'
-extra-deps: []
-resolver: lts-3.21
+  - '.'
+extra-deps:
+  - aeson-0.11.2.0
+  - directory-1.2.6.3

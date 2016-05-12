@@ -17,38 +17,32 @@ extra-source-files:
   README.md
   LICENSE
 
-library
-  hs-source-dirs:      lib/
-  default-language:    Haskell2010
-  ghc-options:         -Wall
-  default-extensions:
-    LambdaCase
-    OverloadedStrings
-    TemplateHaskell
-    Trustworthy
-  build-depends:
-      base ==4.8.*
-    , aeson
-    , bytestring
-    , file-embed
-    , optparse-applicative
-    , text
-    , time
-    , vector
-  exposed-modules:
-    Control.Applicative.AltConcat
-    Utility.Tn
-    Utility.Tn.ArgParsing
-    Utility.Tn.Types
-
 executable tn
-  hs-source-dirs:      src/
+  hs-source-dirs:      bin/
   default-language:    Haskell2010
   ghc-options:         -Wall
   main-is:             Main.hs
+  other-modules:
+    Paths_tn
+  default-extensions:
+    DeriveGeneric
+    LambdaCase
+    OverloadedStrings
+    TemplateHaskell
   build-depends:     
       base ==4.8.*
-    , tn
+    , aeson >=0.10.0.0
+    , bytestring
+    , directory >=1.2.3.0
+    , file-embed
+    , optparse-simple
+    , pager
+    , system-filepath
+    , text
+    , time
+    , turtle
+    , vector
+    , yaml
 
 test-suite spec
   hs-source-dirs:      spec/

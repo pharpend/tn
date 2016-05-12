@@ -1,22 +1,6 @@
 module Main where
 
-import           Data.Aeson hiding (encode)
-import qualified Data.ByteString as B
-import           Data.FileEmbed
-import           Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.IO as T
-import           Data.Time
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
-import           Data.Yaml
-import           GHC.Generics
-import           Options.Applicative.Simple
-import qualified Paths_tn as P
-import           System.Directory
-import           System.IO
-import           System.Pager
+import Options.Applicative
 
 main :: IO ()
 main =
@@ -28,7 +12,6 @@ main =
                      parser
      runCommand cmd
   where
-    appName = "tn"
     parser = do licenseCmd
                 newEntryCommand
     licenseCmd =
@@ -70,7 +53,6 @@ main =
                                                                     ]))
                                          , pure DefaultOutput
                                          ])
-    altConcat = foldr (<|>) empty
     runCommand =
       \case
         ShowLicense noPager
@@ -101,17 +83,6 @@ main =
                     B.writeFile absFile newJournalYml
                DefaultOutput ->
                  B.writeFile cjp newJournalYml
-    licenseText = T.decodeUtf8 $(embedFile "LICENSE")
-    dataPath = getXdgDirectory XdgData appName
-    defaultPath =
-      do dp <- dataPath
-         createDirectoryIfMissing True dp
-         let pth = mappend dp "/journal.yaml"
-         fexists <- doesFileExist pth
-         if fexists
-           then return pth
-           else do T.writeFile pth "[]"
-                   return pth
 
 data Command = NewEntry Input Output
              | ShowLicense Bool
@@ -126,13 +97,3 @@ data Output = ToFile FilePath
             | Stdout
             | DefaultOutput
   deriving (Eq, Show)
-
-type Journal = Vector Entry
-
-data Entry = Entry { entryTime :: UTCTime
-                   , entryText :: Text
-                   }
-  deriving (Eq, Show, Generic)
-
-instance ToJSON Entry
-instance FromJSON Entry

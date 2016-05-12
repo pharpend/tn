@@ -17,9 +17,29 @@ extra-source-files:
   README.md
   LICENSE
 
-source-repository head
-  type:                git
-  location:            https://github.com/pharpend/tn.git
+library
+  hs-source-dirs:      lib/
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  default-extensions:
+    DeriveGeneric
+    LambdaCase
+    OverloadedStrings
+    TemplateHaskell
+  exposed-modules:
+    Tn
+  build-depends:
+      base ==4.8.*
+    , aeson >=0.10.0.0
+    , bytestring
+    , directory >=1.2.3.0
+    , file-embed
+    , text
+    , time
+    , optparse-simple
+    , pager
+    , vector
+    , yaml
 
 executable tn
   hs-source-dirs:      bin/
@@ -31,17 +51,12 @@ executable tn
   default-extensions:
     DeriveGeneric
     LambdaCase
-    OverloadedStrings
     TemplateHaskell
-  build-depends:     
+  build-depends:
       base ==4.8.*
-    , aeson >=0.10.0.0
-    , bytestring
-    , directory >=1.2.3.0
-    , file-embed
     , optparse-simple
-    , pager
-    , text
-    , time
-    , vector
-    , yaml
+    , tn
+
+source-repository head
+  type:                git
+  location:            https://github.com/pharpend/tn.git

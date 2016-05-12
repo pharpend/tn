@@ -17,7 +17,6 @@ import qualified Paths_tn as P
 import           System.Directory
 import           System.IO
 import           System.Pager
-import           Turtle hiding (FilePath, switch, stdin, stdout)
 
 main :: IO ()
 main =

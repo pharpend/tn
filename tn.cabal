@@ -37,10 +37,8 @@ executable tn
     , file-embed
     , optparse-simple
     , pager
-    , system-filepath
     , text
     , time
-    , turtle
     , vector
     , yaml
 

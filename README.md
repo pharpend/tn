@@ -6,14 +6,23 @@ copy of the ISC license in the [LICENSE file][license-file]
 
 ## Installing
 
-The version on Hackage is out of date, and also really terrible, so
-don't try to `cabal install tn` just yet. You'll need [git][git-install]
-and [The Haskell Stack][hs-stack].
+First, install [Stack][hs-stack].
 
-    git clone https://github.com/pharpend/tn.git
-    cd tn
-    stack setup
-    stack install
+    $ stack setup
+    $ stack install tn
+
+Versions of tn less than `4` are just awful, so run
+
+    $ tn version
+
+to make sure you have a decent version. else, try this:
+
+You'll need [git][git] and [The Haskell Stack][hs-stack].
+
+    $ git clone https://github.com/pharpend/tn.git
+    $ cd tn
+    $ stack setup
+    $ stack install
 
 I welcome any contributions anyone wants to make. If you find a bug or a
 feature request, use the [GitHub bug tracker][issues]. If you want to

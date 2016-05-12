@@ -1,91 +1,12 @@
 module Main where
 
 import Options.Applicative
-
-main :: IO ()
-main =
-  do (_, cmd) <-
-       simpleOptions $(simpleVersion P.version)
-                     appName
-                     "Simple journaling program"
-                     (pure ())
-                     parser
-     runCommand cmd
-  where
-    parser = do licenseCmd
-                newEntryCommand
-    licenseCmd =
-      addCommand "license"
-                 "Show the license (ISC)"
-                 ShowLicense
-                 (switch (mconcat [ long "no-pager"
-                                  , help "Do not pipe to the system pager"
-                                  , showDefault
-                                  ]))
-    newEntryCommand =
-      addCommand "new"
-                 "Add a new entry"
-                 id
-                 (NewEntry <$> altConcat [ fmap Argument
-                                                (strArgument (mconcat [ help "Entry text"
-                                                                      , metavar "TEXT"
-                                                                      ]))
-                                         , fmap FromFile
-                                                (strOption (mconcat [ help "Input file"
-                                                                    , metavar "PATH"
-                                                                    , long "input"
-                                                                    , short 'i'
-                                                                    ]))
-                                         , flag' Stdin
-                                                 (mconcat [ help "Read entry text from stdin"
-                                                          , long "stdin"
-                                                          ])
-                                         ]
-                           <*> altConcat [ flag' Stdout
-                                                 (mconcat [ help "Print to stdout instead of a file"
-                                                          , long "stdout"
-                                                          ])
-                                         , fmap ToFile
-                                                (strOption (mconcat [ help "Output file"
-                                                                    , metavar "PATH"
-                                                                    , long "output"
-                                                                    , short 'o'
-                                                                    ]))
-                                         , pure DefaultOutput
-                                         ])
-    runCommand =
-      \case
-        ShowLicense noPager
-          | noPager -> T.putStrLn licenseText
-          | otherwise -> printOrPage licenseText
-        NewEntry i o ->
-          do inputText <-
-               case i of
-                 Argument s -> return (T.pack s)
-                 FromFile fp ->
-                   do absPath <- makeAbsolute fp
-                      T.readFile absPath
-                 Stdin -> T.hGetContents stdin
-             cjp <- defaultPath
-             currentJournal <-
-               decodeFileEither cjp
-               >>= \case
-                     Left e -> fail (show e)
-                     Right x -> return x
-             currentTime <- getCurrentTime
-             let newJournal = V.snoc currentJournal
-                                     (Entry currentTime inputText)
-                 newJournalYml = encode newJournal
-             case o of
-               Stdout -> B.hPut stdout newJournalYml
-               ToFile f ->
-                 do absFile <- makeAbsolute f
-                    B.writeFile absFile newJournalYml
-               DefaultOutput ->
-                 B.writeFile cjp newJournalYml
+import System.IO
+import Tn
 
 data Command = NewEntry Input Output
              | ShowLicense Bool
+             | ShowVersion
   deriving (Eq, Show)
 
 data Input = Argument String
@@ -97,3 +18,95 @@ data Output = ToFile FilePath
             | Stdout
             | DefaultOutput
   deriving (Eq, Show)
+
+main :: IO ()
+main =
+  do result <- customExecParser tnPrefs (infoHelper tnParser tnInfo)
+     hSetBuffering stdin NoBuffering
+     case result of
+        ShowLicense noPager -> printLicense noPager
+        ShowVersion -> putStrLn version
+        NewEntry i o ->
+          do input <- case i of
+                        Argument s -> return s
+                        FromFile fp -> readFile fp
+                        Stdin -> getContents
+             currentJournal <- readJournal
+             newJournal <- addEntry currentJournal <$> mkEntry input
+             case o of
+               Stdout -> printJournal newJournal False
+               ToFile f -> writeJournalFile newJournal f
+               DefaultOutput -> writeJournal newJournal
+
+tnPrefs :: ParserPrefs
+tnPrefs =
+  prefs $ mconcat [ disambiguate
+                  , showHelpOnError
+                  ]
+
+infoHelper :: Parser a -> InfoMod a -> ParserInfo a
+infoHelper a = info (helper <*> a)
+
+tnInfo :: InfoMod Command
+tnInfo = mconcat [ briefDesc
+                 , progDesc "Simple journal-keeping program"
+                 ]
+
+tnParser :: Parser Command
+tnParser =
+  altConcat $ fmap subparser [ licenseCmd
+                             , versionCmd
+                             , newEntryCmd
+                             ]
+
+
+licenseCmd :: Mod CommandFields Command
+licenseCmd = 
+  command "license" $
+    infoHelper licenseParser
+               (mappend briefDesc
+                        (progDesc "Show the license (ISC)"))
+  where
+    licenseParser = 
+      ShowLicense <$> switch (mconcat [ long "no-pager"
+                                      , help "Do not pipe to the system pager"
+                                      , showDefault
+                                      ])
+
+versionCmd :: Mod CommandFields Command
+versionCmd = 
+  command "version" $
+    infoHelper (pure ShowVersion)
+               (mappend briefDesc
+                        (progDesc "Show the version"))
+
+  
+newEntryCmd :: Mod CommandFields Command
+newEntryCmd =
+  command "new"
+          (infoHelper (NewEntry <$> inputOpts <*> outputOpts)
+                      (mappend briefDesc
+                               (progDesc "New entry")))
+  where
+    inputOpts = 
+      altConcat [ FromFile <$> strOption (mconcat [ help "Input file"
+                                                  , metavar "PATH"
+                                                  , long "input"
+                                                  , short 'i'
+                                                  ])
+                , flag' Stdin (mconcat [ help "Read entry text from stdin"
+                                       , long "stdin"
+                                       ])
+                , Argument <$> strArgument (mconcat [help "Entry text", metavar "TEXT"])
+                ]
+    outputOpts = altConcat [ flag' Stdout (mconcat [ help "Print to stdout instead of a file"
+                                                   , long "stdout"
+                                                   ])
+                           , ToFile <$> strOption (mconcat [ help "Output file"
+                                                           , metavar "PATH"
+                                                           , long "output"
+                                                           , short 'o'
+                                                           ])
+                           , pure DefaultOutput
+                           ]
+

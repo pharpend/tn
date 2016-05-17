@@ -19,16 +19,26 @@ main =
          do currentJournal <- readJournal
             newJournal <- addEntry currentJournal <$> mkEntry i
             writeJournal newJournal
-  where tnParser = altconcat [version', license, newEntry]
+       Cat ->
+         do currentJournal <- readJournal
+            printJournal currentJournal False
+  where tnParser = altconcat [version', license, cat, newEntry]
         version' = flag' ShowVersion
                          (mappend (help "Print the version")
                                   (long "version"))
         license = flag' ShowLicense
                         (mappend (help "Print the license")
                                  (long "license"))
+        cat = flag' Cat
+                    (mconcat [ help "Print the current journal"
+                             , long "cat"
+                             , short 'c'
+                             ])
+        catDesc = fpDesc "Print the current journal"
         newEntry = NewEntry <$> strArgument (help "Entry text")
 
 data Command = NewEntry String
+             | Cat
              | ShowLicense
              | ShowVersion
   deriving (Eq, Show)

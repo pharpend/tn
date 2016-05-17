@@ -1,5 +1,5 @@
 name:                tn
-version:             4.0.0.1
+version:             4.1.0.0
 synopsis:            A simple daily journal program
 description:
   tn is a simple program to keep journals.
@@ -57,7 +57,10 @@ executable tn
     TemplateHaskell
   build-depends:
       base ==4.8.*
+    , bytestring
+    , file-embed
     , optparse-applicative
+    , optparse-helper
     , tn
 
 source-repository head
